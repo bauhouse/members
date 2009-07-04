@@ -1,0 +1,76 @@
+/* Role Permissions */
+
+table.role-permissions {
+	text-align: center;
+	width: 100%;
+	margin-bottom: 2em;
+	border: 1px solid #ddd;
+	padding: 0;
+}
+
+table.role-permissions th:first-child {
+	text-align: left;
+}
+
+table.role-permissions th {
+	background-color: #d6d4c8;
+	padding: 5px
+}
+
+table.role-permissions tr td {
+	background-color: #f5f5f5;
+	padding: 5px;
+}
+
+table.role-permissions tr.odd td {
+	background-color: #fff;
+}
+
+table.role-permissions td:first-child {
+	text-align: left;
+}
+
+table.role-permissions tr.selected td {
+	color: #222;
+}
+
+table.role-permissions tr.selected.odd td {
+	background-color: #fff !important;
+}
+
+table.role-permissions tr.selected td {
+	background-color: #f5f5f3 !important;
+}
+
+/* Role Operations */
+
+#role-operations {
+	background-color: #d6d4c8;
+	width: 100%;
+	margin-bottom: 1em;
+}
+
+#role-operations tr.odd td {
+	background-color: #d6d4c8;
+}
+
+#role-operations td {
+	padding: 10px;
+	border-bottom: 1px solid #fff;
+	text-align: right;
+	width: 100px;
+}
+
+#role-operations tr td + td {
+	text-align: center;
+	width: auto;
+}
+
+#role-operations tr td + td + td {
+	width: 10%;
+	text-align: center;
+}
+
+#role-operations input {
+	width: 70px;
+}
