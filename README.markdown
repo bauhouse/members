@@ -50,13 +50,13 @@ For example, in the context of the [Symphony CMS](http://symphony-cms.com/) site
 
 The Members extension adds a "Members" menu with two menu items: Roles and Preferences. (As stated previously, don't first navigate to Roles or you will encounter the error mentioned above.) Once the members section has been created, first set the preferences in Members : Preferences. The select box menu for Member Section automatically filters only those sections that contain a Member Username/Password field and a Member Role field. Click the "Save Changes" button to save the Members Section. This will enable the Email Address select box, to select the corresponding email input field. Click the "Save Changes" button again to save the Email Address field preference. 
 
-<a href="http://www.flickr.com/photos/bauhouse/3702896731/" title="members_extension_prefs by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3451/3702896731_3a7d0b6a3b_o.png" width="640" height="868" alt="members_extension_prefs" /></a>
+<a href="http://www.flickr.com/photos/bauhouse/3702896731/" title="members_extension_prefs by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3451/3702896731_3a7d0b6a3b_o.png" width="786" height="1066" alt="members_extension_prefs" /></a>
 
 #### Creating Roles and Permissions
 
-Navigate to Members : Roles to view the default "Guest" role. This default role cannot be deleted. However, the preferences can be set for the Name of the role, Page Level Permissions, Operations, and the  Email Template for successful member registration.
+Navigate to Members : Roles to view the default "Guest" role. This default role cannot be deleted. However, the preferences can be set for the Name of the role, Event Level Permissions, when any events exist, Page Level Permissions, Operations, and the  Email Template for successful member registration.
 
-<a href="http://www.flickr.com/photos/bauhouse/3703704062/" title="members_extension_roles by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3425/3703704062_a6b7a78d53_o.png" width="640" height="868" alt="members_extension_roles" /></a>
+<a href="http://www.flickr.com/photos/bauhouse/3703704062/" title="members_extension_roles by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3425/3703704062_a6b7a78d53_o.png" width="786" height="1066" alt="members_extension_roles" /></a>
 
 ### Create Login Form
 
