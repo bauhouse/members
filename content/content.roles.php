@@ -19,7 +19,7 @@
 
 			$this->_Parent->Page->addStylesheetToHead(URL . '/extensions/members/assets/styles.css', 'screen', 70);
 			
-			$create_button = Widget::Anchor('Create a new role', extension_members::baseURL() . 'new/', 'Create a new role', 'create button');
+			$create_button = Widget::Anchor('Create a New Role', extension_members::baseURL() . 'new/', 'Create a New Role', 'create button');
 
 			$this->setPageType('table');
 			$this->appendSubheading('Member Roles ' . $create_button->generate(false));
