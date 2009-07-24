@@ -249,6 +249,11 @@
 							'callback' => 'emailNewMember'
 						),		
 						
+						array(
+							'page'		=> '/frontend/',
+							'delegate'	=> 'FrontendParamsResolve',
+							'callback'	=> 'addParam'
+						),
 			);
 		}
 		
@@ -314,6 +319,15 @@
 	
 			General::sendEmail($to_address,  $sender_email, $sender_name, $subject, $body);
 						
+		}
+		
+		public function addParam($context) {
+
+			$this->initialiseCookie();
+
+			if($id = $this->__findMemberIDFromCredentials($this->_cookie->get('username'), $this->_cookie->get('password'))){
+				$context = $context['params']['member-id'] = $id;
+			}
 		}
 		
 		public function emailNewMember($context){
