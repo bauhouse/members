@@ -4,7 +4,7 @@ A Symphony CMS extension for creating a members-based community. This extension 
 
 * [Members Extension](http://github.com/bauhouse/members/tree)
 
-> While not officially released by the developers, I asked for the Members extension and Alistair was kind enough to supply it. At the time, there were some patches needing to be pushed to the integration branch that prevented the release of the extension. With the release of 2.0.3 (and recently 2.0.4), the extension seems to be in working order, but I haven’t fully tested it.
+> While not officially released by the developers, I asked for the Members extension and Alistair was kind enough to supply it. At the time, there were some patches needing to be pushed to the integration branch that prevented the release of the extension. With the release of 2.0.3 (and recently 2.0.4), the extension seems to be in working order, but I haven't fully tested it.
 
 I say "unofficially" not only because I didn't develop it, but also because I haven't fully tested the extension and it lacks documentation. I'll pull together what I know here:
 
@@ -44,15 +44,19 @@ Or install them as submodules:
 
 The Members extension provides 3 new fields. The important 2 are "Member Role" and "Member username & password", both of which need to be added to a members section, along with an Email address field, which will be specified as the email address to which the "Forgot Password" process will use to retrieve a password for a user. The Member Link field is for linking entries to a member account, similar to a Select Box Link, in effect.
 
-For example, in the context of the [Symphony CMS](http://symphony-cms.com/) site, there is a Members section that contains the Member Role and Member Username/Password fields (as well as email address and other information). Each forum Discussion entry has a Member Link field, stating which Member it belongs to. In the backend this is manifested as a textfield with the Member “username” in it. But when sending via an Event, send the ID of the Member entry itself.
+For example, in the context of the [Symphony CMS](http://symphony-cms.com/) site, there is a Members section that contains the Member Role and Member Username/Password fields (as well as email address and other information). Each forum Discussion entry has a Member Link field, stating which Member it belongs to. In the backend this is manifested as a textfield with the Member "username" in it. But when sending via an Event, send the ID of the Member entry itself.
 
-### Set Member Section Preferences
+#### Set Member Section Preferences
 
 The Members extension adds a "Members" menu with two menu items: Roles and Preferences. (As stated previously, don't first navigate to Roles or you will encounter the error mentioned above.) Once the members section has been created, first set the preferences in Members : Preferences. The select box menu for Member Section automatically filters only those sections that contain a Member Username/Password field and a Member Role field. Click the "Save Changes" button to save the Members Section. This will enable the Email Address select box, to select the corresponding email input field. Click the "Save Changes" button again to save the Email Address field preference. 
 
-### Creating Roles and Permissions
+<a href="http://www.flickr.com/photos/bauhouse/3702896731/" title="members_extension_prefs by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3451/3702896731_3a7d0b6a3b_o.png" width="640" height="868" alt="members_extension_prefs" /></a>
+
+#### Creating Roles and Permissions
 
 Navigate to Members : Roles to view the default "Guest" role. This default role cannot be deleted. However, the preferences can be set for the Name of the role, Page Level Permissions, Operations, and the  Email Template for successful member registration.
+
+<a href="http://www.flickr.com/photos/bauhouse/3703704062/" title="members_extension_roles by bauhouse, on Flickr"><img src="http://farm4.static.flickr.com/3425/3703704062_a6b7a78d53_o.png" width="640" height="868" alt="members_extension_roles" /></a>
 
 ### Create Login Form
 
