@@ -34,10 +34,10 @@ These can be installed with Git by cloning the GitHub repositories:
 
 Or install them as submodules:
 
-    git submodule add git://github.com/bauhouse/members.git
-    git submodule add git://github.com/pointybeard/asdc.git
-    git submodule add git://github.com/bauhouse/library.git
-    
+    git submodule add git://github.com/bauhouse/members.git extensions/members
+    git submodule add git://github.com/pointybeard/asdc.git extensions/asdc
+    git submodule add git://github.com/bauhouse/library.git extensions/library
+        
 ### Configuration
 
 #### Create a Members Section
