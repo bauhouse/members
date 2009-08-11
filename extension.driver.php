@@ -25,7 +25,7 @@
 			$this->_email_subject = $email_subject;
 		}
 		
-		private function __call($name, $var){
+		public function __call($name, $var){
 			return $this->{"_$name"};
 		}
 		
