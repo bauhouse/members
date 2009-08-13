@@ -85,10 +85,12 @@
 		public function about(){
 			return array('name' => 'Members',
 						 'version' => '1.0.1',
-						 'release-date' => '2009-08-11',
+						 'release-date' => '2009-08-13',
 						 'author' => array('name' => 'Symphony Team',
-										   'website' => 'http://www.symphony21.com',
-										   'email' => 'team@symphony21.com')
+										   'website' => 'http://www.symphony-cms.com',
+										   'email' => 'team@symphony-cms.com'),
+						 'description'	=> 'Front end authentication system for a members site'
+
 				 		);
 		}
 
