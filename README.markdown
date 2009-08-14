@@ -211,17 +211,18 @@ For any discussion regarding this extension, please refer to the [Members Extens
 
 Version 1.0.2 - 14 August 2009
 
-* Checks for ConfigurationAccessor class on install
-* Send welcome email on creation only: processEventData() returns false if entry_id doesn't exist. Fixes Issue #6 
+* Roles page now returns error if member section is not set (lewiswharf)
+* Checks for ConfigurationAccessor class on install (lewiswharf)
+* Send welcome email on creation only: processEventData() returns false if entry_id doesn't exist. Fixes Issue #6 (lewiswharf)
 
 Version 1.0.1 - 13 August 2009
 
-* Fix page alerts for editing Member Roles. Fixes Issue #5 
-* Make the __call() method public for PHP 5.3.0 compatibility. Fixes Issue #2 
-* Added $member-id param to pool (changes and additions from lewiswharf)
+* Fix page alerts for editing Member Roles. Fixes Issue #5 (phoque)
+* Make the __call() method public for PHP 5.3.0 compatibility. Fixes Issue #2 (tonyarnold)
+* Added $member-id param to pool (lewiswharf)
 * Change case of title attribute on the 'Create a New Role' button to 
-sentence case, for consistency
-* Added documentation to README
+sentence case, for consistency (bauhouse)
+* Added documentation to README (bauhouse)
 
 Unofficially Released - 4 July 2009
 
