@@ -96,7 +96,13 @@
 
 		public function install(){
 			
+			if(!class_exists(ConfigurationAccessor)) {
+				trigger_error(__('Could not %1$s, the Members Extension requires the <a href="%2$s">Library Extension</a>.', array(__FUNCTION__, 'http://github.com/bauhouse/library/tree/master')), E_USER_ERROR);	        	
+				return false;
+			}
+
 			ConfigurationAccessor::set('cookie-prefix', 'sym-members', 'members');
+
 			$this->_Parent->saveConfig();
 			
 			Symphony::Database()->import("
