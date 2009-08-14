@@ -337,6 +337,8 @@
 		}
 
 		public function processEventData($context){
+			if(isset($context['entry_id'])) return false;
+
 			if($context['event']->getSource() == self::memberSectionID()) return $this->__sendNewRegistrationEmail($context['entry'], $context['fields']);	
 		}
 		
