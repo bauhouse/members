@@ -1,10 +1,10 @@
 # Members Extension (Unofficial Release)
 
-A Symphony CMS extension for creating a members-based community. This extension is currently being used to manage the new [Symphony CMS](http://symphony-cms.com/) community site, blog, and forum, which are all running on a single install of Symphony 2.0.4. All credit for creating the Members extension goes to Alistair Kearney ([pointybeard](http://github.com/pointybeard)). I am merely releasing this extension, unofficially, as a GitHub repository.
+A Symphony CMS extension for creating a members-based community. This extension is currently being used to manage the new [Symphony CMS](http://symphony-cms.com/) community site, blog, and forum, which are all running on a single install of Symphony 2. All credit for creating the Members extension goes to Alistair Kearney ([pointybeard](http://github.com/pointybeard)). I am merely releasing this extension, unofficially, as a GitHub repository.
 
 * [Members Extension](http://github.com/bauhouse/members/tree)
 
-> While not officially released by the developers, I asked for the Members extension and Alistair was kind enough to supply it. At the time, there were some patches needing to be pushed to the integration branch that prevented the release of the extension. With the release of 2.0.3 (and recently 2.0.4), the extension seems to be in working order, but I haven't fully tested it.
+> While not officially released by the developers, I asked for the Members extension and Alistair was kind enough to supply it. At the time, there were some patches needing to be pushed to the integration branch that prevented the release of the extension. With the release of 2.0.3 ... the extension seems to be in working order, but I haven't fully tested it.
 
 I say "unofficially" not only because I didn't develop it, but also because I haven't fully tested the extension and it lacks documentation. I'll pull together what I know here:
 
@@ -34,10 +34,10 @@ These can be installed with Git by cloning the GitHub repositories:
 
 Or install them as submodules:
 
-    git submodule add git://github.com/bauhouse/members.git
-    git submodule add git://github.com/pointybeard/asdc.git
-    git submodule add git://github.com/bauhouse/library.git
-    
+    git submodule add git://github.com/bauhouse/members.git extensions/members
+    git submodule add git://github.com/pointybeard/asdc.git extensions/asdc
+    git submodule add git://github.com/bauhouse/library.git extensions/library
+        
 ### Configuration
 
 #### Create a Members Section
@@ -206,3 +206,22 @@ All of these fields can be set dynamically using the exact field name of another
 	</form>
 
 For any discussion regarding this extension, please refer to the [Members Extension (Unofficial Release)](http://symphony-cms.com/community/discussions/24100/) discussion on the Symphony CMS site.
+
+### Change Log
+
+Version 1.0.1 - 13 August 2009
+
+* Fix page alerts for editing Member Roles. Fixes Issue #5 
+* Make the __call() method public for PHP 5.3.0 compatibility. Fixes Issue #2 
+* Added $member-id param to pool (changes and additions from lewiswharf)
+* Change case of title attribute on the 'Create a New Role' button to 
+sentence case, for consistency
+* Added documentation to README
+
+Unofficially Released - 4 July 2009
+
+* Released on GitHub by bauhouse (Stephen Bau)
+
+Version 1.0 - 12 April 2008
+
+* Developed by Symphony Team

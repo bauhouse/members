@@ -25,7 +25,7 @@
 			$this->_email_subject = $email_subject;
 		}
 		
-		private function __call($name, $var){
+		public function __call($name, $var){
 			return $this->{"_$name"};
 		}
 		
@@ -84,17 +84,25 @@
 		
 		public function about(){
 			return array('name' => 'Members',
-						 'version' => '1.0',
-						 'release-date' => '2008-04-12',
+						 'version' => '1.0.1',
+						 'release-date' => '2009-08-13',
 						 'author' => array('name' => 'Symphony Team',
-										   'website' => 'http://www.symphony21.com',
-										   'email' => 'team@symphony21.com')
+										   'website' => 'http://www.symphony-cms.com',
+										   'email' => 'team@symphony-cms.com'),
+						 'description'	=> 'Front end authentication system for a members site'
+
 				 		);
 		}
 
 		public function install(){
 			
+			if(!class_exists(ConfigurationAccessor)) {
+				trigger_error(__('Could not %1$s, the Members Extension requires the <a href="%2$s">Library Extension</a>.', array(__FUNCTION__, 'http://github.com/bauhouse/library/tree/master')), E_USER_ERROR);	        	
+				return false;
+			}
+
 			ConfigurationAccessor::set('cookie-prefix', 'sym-members', 'members');
+
 			$this->_Parent->saveConfig();
 			
 			Symphony::Database()->import("
@@ -335,6 +343,8 @@
 		}
 
 		public function processEventData($context){
+			if(isset($context['entry_id'])) return false;
+
 			if($context['event']->getSource() == self::memberSectionID()) return $this->__sendNewRegistrationEmail($context['entry'], $context['fields']);	
 		}
 		
