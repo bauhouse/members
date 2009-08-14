@@ -84,8 +84,8 @@
 		
 		public function about(){
 			return array('name' => 'Members',
-						 'version' => '1.0.1',
-						 'release-date' => '2009-08-13',
+						 'version' => '1.0.2',
+						 'release-date' => '2009-08-14',
 						 'author' => array('name' => 'Symphony Team',
 										   'website' => 'http://www.symphony-cms.com',
 										   'email' => 'team@symphony-cms.com'),
