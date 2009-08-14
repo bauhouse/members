@@ -43,6 +43,13 @@
 								);
 			}
 
+			elseif(!$this->_driver->memberSectionID()){
+				$this->pageAlert(__('You must set a section in <a href="%1$s">Member Preferences?</a>', array(extension_members::baseURL() . 'preferences/')), Alert::ERROR);
+				
+				$aTableBody = array(
+									Widget::TableRow(array(Widget::TableData(__('None Found.'), 'inactive', NULL, count($aTableHead))))
+								);
+			}
 			else{
 				
 			    $sectionManager = new SectionManager($this->_Parent);
