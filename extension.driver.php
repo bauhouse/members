@@ -448,17 +448,19 @@
 			$role = $this->fetchRole(($loggedin ? $role_data['role_id'] : 1), true);
 		
 			if(!$role->canAccessPage((int)$context['page_data']['id'])):
-
+	
 				if($row = Symphony::Database()->fetchRow(0, "SELECT `tbl_pages`.* FROM `tbl_pages`, `tbl_pages_types` 
 															  WHERE `tbl_pages_types`.page_id = `tbl_pages`.id AND tbl_pages_types.`type` = '403' 
 															  LIMIT 1")){
 	
-					redirect(URL . '/' . $row['path'] . '/' . $row['handle']);
-																
+					if ($role->canAccessPage($row['id'])){
+						redirect(URL . '/' . ($row['path'] ? $row['path'] . '/' : '') . $row['handle']);
+					}
+					$this->_Parent->customError(E_USER_ERROR, 'Error 403: Forbidden', 'Symphony Error: no access to custom 403 page.', false, true, 'error', array('header' => 'HTTP/1.0 403 Forbidden'));
 				}
-				
-				$this->_Parent->customError(E_USER_ERROR, 'Forbidden', 'Please <a href="'.URL.'/symphony/login/">login</a> to view this page.', false, true, 'error', array('header' => 'HTTP/1.0 403 Forbidden'));
-				
+	
+				$this->_Parent->customError(E_USER_ERROR, 'Forbidden', 'Please <a href="' . URL . '/login/">login</a> to view this page.', false, true, 'error', array('header' => 'HTTP/1.0 403 Forbidden'));
+	
 			endif;
 
 			$context['wrapper']->appendChild($this->buildXML());
