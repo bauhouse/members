@@ -107,28 +107,8 @@
 			
 			Symphony::Database()->import("
 			
-				CREATE TABLE `tbl_fields_member` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
 
-
-				CREATE TABLE `tbl_fields_memberlink` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
-
-				CREATE TABLE `tbl_fields_memberrole` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
+			Symphony::Database()->import("
 
 				CREATE TABLE `tbl_members_login_tokens` (
 				  `member_id` int(11) unsigned NOT NULL,
@@ -167,6 +147,29 @@
 				  `allow` enum('yes','no')  NOT NULL default 'no',
 				  PRIMARY KEY  (`id`),
 				  KEY `role_id` (`role_id`,`page_id`)
+				) ;
+
+				CREATE TABLE `tbl_fields_member` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
+
+
+				CREATE TABLE `tbl_fields_memberlink` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
+
+
+				CREATE TABLE `tbl_fields_memberrole` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
 				)
 			
 			");
