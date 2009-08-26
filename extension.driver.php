@@ -85,7 +85,7 @@
 		public function about(){
 			return array('name' => 'Members',
 						 'version' => '1.0.2',
-						 'release-date' => '2009-08-14',
+						 'release-date' => '2009-08-25',
 						 'author' => array('name' => 'Symphony Team',
 										   'website' => 'http://www.symphony-cms.com',
 										   'email' => 'team@symphony-cms.com'),
@@ -544,6 +544,25 @@
 			else{
 				$result = new XMLElement('member-login-info');
 				$result->setAttribute('logged-in', 'false');
+
+				$role_name = Symphony::Database()->fetchVar('name', 0, "SELECT `name` FROM `sym_members_roles` WHERE `id` = '1' ");
+				$role_xml = new XMLElement('role', $role_name);
+				$role_xml->setAttribute('id', '1');
+
+				$result->appendChild($role_xml);
+
+				$page_permissions = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `sym_members_roles_page_permissions` WHERE `role_id` = '1' ");
+				$permission = new XMLElement('permissions');
+
+				if(is_array($page_permissions) && !empty($page_permissions)){
+					$pages = new XMLElement('pages');
+					foreach($page_permissions as $page_id) 
+						$pages->appendChild(new XMLElement('page', NULL, array('id' => $page_id)));
+
+					$permission->appendChild($pages);
+				}
+
+				$result->appendChild($permission);
 			}
 			
 			return $result;

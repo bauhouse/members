@@ -209,8 +209,9 @@ For any discussion regarding this extension, please refer to the [Members Extens
 
 ### Change Log
 
-Version 1.0.2 - 17 August 2009
+Version 1.0.2 - 25 August 2009
 
+* Add page permissions to XML for default member role (bauhouse)
 * Fix 403 Forbidden error pages (michael-e / bauhouse)
 * Roles page now returns error if member section is not set (lewiswharf)
 * Checks for ConfigurationAccessor class on install (lewiswharf)
