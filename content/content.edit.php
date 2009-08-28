@@ -32,7 +32,7 @@
 				$this->_Parent->Database->query($sql);
 				
 				$this->_Parent->Database->query("DELETE FROM `tbl_members_roles` WHERE `id` = $role_id");
-				$this->_Parent->Database->query("DELETE FROM `tbl_members_roles_page_permissions` WHERE `role_id` = $role_id");
+				$this->_Parent->Database->query("DELETE FROM `tbl_members_roles_forbidden_pages` WHERE `role_id` = $role_id");
 				$this->_Parent->Database->query("DELETE FROM `tbl_members_roles_event_permissions` WHERE `role_id` = $role_id");
 				
 				redirect(extension_members::baseURL() . 'roles/');
@@ -73,12 +73,12 @@
 							
 				$this->_Parent->Database->query($sql);
 				
-				$sql = "DELETE FROM `tbl_members_roles_page_permissions` WHERE `role_id` = ".$existing->id();
+				$sql = "DELETE FROM `tbl_members_roles_forbidden_pages` WHERE `role_id` = ".$existing->id();
 				$this->_Parent->Database->query($sql);
 				
 				if(is_array($page_access) && !empty($page_access)){
 					foreach($page_access as $page_id) 
-						$this->_Parent->Database->query("INSERT INTO `tbl_members_roles_page_permissions` VALUES (NULL, ".$existing->id().", $page_id, 'yes')");
+						$this->_Parent->Database->query("INSERT INTO `tbl_members_roles_forbidden_pages` VALUES (NULL, ".$existing->id().", $page_id)");
 
 				}
 
@@ -114,17 +114,17 @@
 			if(isset($this->_context[1])){
 				switch($this->_context[1]){
 					
-	                case 'saved':
-	                    $this->pageAlert(__('%1$s updated successfully. <a href="%2$s">Create another?</a>', array('Role', extension_members::baseURL() . 'new/')), Alert::SUCCESS);
-	                    break;
-	
-	                case 'created':
-	                    $this->pageAlert(__('%1$s created successfully. <a href="%2$s">Create another?</a>', array('Role', extension_members::baseURL() . 'new/')), Alert::SUCCESS);
-	                    break;
-	
-	                case 'moved':
-	                    $this->pageAlert('All members have been successfully moved to new role.', Alert::SUCCESS);
-	                    break;
+					case 'saved':
+						$this->pageAlert('{1} updated successfully. <a href="{2}">Create another?</a>', AdministrationPage::PAGE_ALERT_NOTICE, array('Role', extension_members::baseURL()));
+						break;
+						
+					case 'created':
+						$this->pageAlert('{1} created successfully. <a href="{2}">Create another?</a>', AdministrationPage::PAGE_ALERT_NOTICE, array('Role', extension_members::baseURL()));
+						break;
+
+					case 'moved':
+						$this->pageAlert('All members have been successfully moved to new role.');
+						break;
 					
 				}
 			}
@@ -150,7 +150,7 @@
 				
 				$fields['name'] = $existing->name();
 				$fields['permissions'] = $existing->eventPermissions();
-				$fields['page_access'] = $existing->pagePermissions();
+				$fields['page_access'] = $existing->forbiddenPages();
 				
 				$fields['email_subject'] = $existing->email_subject();
 				$fields['email_body'] = $existing->email_body();
@@ -190,26 +190,33 @@
 					array('Event', 'col'),
 					array('Add', 'col'),
 					array('Edit', 'col'),
+					array('Edit Own *', 'col'),					
 					array('Delete', 'col'),
+					array('Delete Own *', 'col'),					
 				);	
 
 				$aTableBody = array();
 
 				foreach($events as $event_handle => $event){
-
+				
 					$permissions = $fields['permissions'][$event_handle];
-
+				
 					## Setup each cell
 					$td1 = Widget::TableData($event['name']);
+					
 					$td2 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][add]', 'yes', 'checkbox', (isset($permissions['add']) ? array('checked' => 'checked') : NULL)));
-					$td3 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][edit]', 'yes', 'checkbox', (isset($permissions['edit']) ? array('checked' => 'checked') : NULL)));
-					$td4 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete]', 'yes', 'checkbox', (isset($permissions['delete']) ? array('checked' => 'checked') : NULL)));
 
+					$td3 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][edit]', 'yes', 'checkbox', (isset($permissions['edit']) ? array('checked' => 'checked') : NULL)));
+					$td4 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][edit_own]', 'yes', 'checkbox', (isset($permissions['edit_own']) ? array('checked' => 'checked') : NULL)));
+							
+					$td5 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete]', 'yes', 'checkbox', (isset($permissions['delete']) ? array('checked' => 'checked') : NULL)));
+					$td6 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete_own]', 'yes', 'checkbox', (isset($permissions['delete_own']) ? array('checked' => 'checked') : NULL)));
+					
 					## Add a row to the body array, assigning each cell to the row
-					$aTableBody[] = Widget::TableRow(array($td1, $td2, $td3, $td4));		
+					$aTableBody[] = Widget::TableRow(array($td1, $td2, $td3, $td4, $td5, $td6));
 
 				}
-
+			
 
 				$table = Widget::Table(
 									Widget::TableHead($aTableHead), 
@@ -217,9 +224,11 @@
 									Widget::TableBody($aTableBody),
 									'role-permissions'
 							);
-
-
-				$fieldset->appendChild($table);			
+					
+										
+				$fieldset->appendChild($table);		
+				
+				$fieldset->appendChild(new XMLElement('p', '* <em>Does not apply if global edit/delete is allowed</em>', array('class' => 'help')));		
 				$this->Form->appendChild($fieldset);
 			}
 
@@ -238,7 +247,7 @@
 
 			$pages = $this->_Parent->Database->fetch("SELECT * FROM `tbl_pages` " . ($this->_context[0] == 'edit' ? "WHERE `id` != '$page_id' " : '') . "ORDER BY `title` ASC");
 
-			$label = Widget::Label('Allow Access');
+			$label = Widget::Label('Deny Access');
 
 			$options = array();
 			if(is_array($pages) && !empty($pages)){

@@ -49,7 +49,7 @@
 				
 				if(is_array($page_access) && !empty($page_access)){
 					foreach($page_access as $page_id) 
-						$this->_Parent->Database->query("INSERT INTO `tbl_members_roles_page_permissions` VALUES (NULL, $role_id, $page_id, 'yes')");
+						$this->_Parent->Database->query("INSERT INTO `tbl_members_roles_forbidden_pages` VALUES (NULL, $role_id, $page_id, 'yes')");
 
 				}
 				
@@ -119,7 +119,9 @@
 					array('Event', 'col'),
 					array('Add', 'col'),
 					array('Edit', 'col'),
+					array('Edit Own *', 'col'),					
 					array('Delete', 'col'),
+					array('Delete Own *', 'col'),					
 				);	
 
 				$aTableBody = array();
@@ -130,12 +132,17 @@
 				
 					## Setup each cell
 					$td1 = Widget::TableData($event['name']);
+					
 					$td2 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][add]', 'yes', 'checkbox', (isset($permissions['add']) ? array('checked' => 'checked') : NULL)));
+
 					$td3 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][edit]', 'yes', 'checkbox', (isset($permissions['edit']) ? array('checked' => 'checked') : NULL)));
-					$td4 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete]', 'yes', 'checkbox', (isset($permissions['delete']) ? array('checked' => 'checked') : NULL)));
-								
+					$td4 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][edit_own]', 'yes', 'checkbox', (isset($permissions['edit_own']) ? array('checked' => 'checked') : NULL)));
+							
+					$td5 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete]', 'yes', 'checkbox', (isset($permissions['delete']) ? array('checked' => 'checked') : NULL)));
+					$td6 = Widget::TableData(Widget::Input('fields[permissions][' . $event_handle .'][delete_own]', 'yes', 'checkbox', (isset($permissions['delete_own']) ? array('checked' => 'checked') : NULL)));
+					
 					## Add a row to the body array, assigning each cell to the row
-					$aTableBody[] = Widget::TableRow(array($td1, $td2, $td3, $td4));		
+					$aTableBody[] = Widget::TableRow(array($td1, $td2, $td3, $td4, $td5, $td6));
 
 				}
 			
@@ -148,7 +155,10 @@
 							);
 					
 										
-				$fieldset->appendChild($table);			
+				$fieldset->appendChild($table);		
+				
+				$fieldset->appendChild(new XMLElement('p', '* <em>Does not apply if global edit/delete is allowed</em>', array('class' => 'help')));
+					
 				$this->Form->appendChild($fieldset);
 			}
 			
@@ -167,7 +177,7 @@
 				
 			$pages = $this->_Parent->Database->fetch("SELECT * FROM `tbl_pages` " . ($this->_context[0] == 'edit' ? "WHERE `id` != '$page_id' " : '') . "ORDER BY `title` ASC");
 			
-			$label = Widget::Label('Allow Access');
+			$label = Widget::Label('Deny Access');
 			
 			$options = array();
 			if(is_array($pages) && !empty($pages)){
@@ -210,4 +220,3 @@
 		}
 	}
 	
-?>

@@ -73,7 +73,7 @@
 			    $section = $sectionManager->fetch($member_section_id);
 			
 				foreach($section->fetchFields() as $f){
-					$options[] = array($f->get('id'), (ConfigurationAccessor::get('email_address_field_id', 'members') == $f->get('id')), $f->get('label'));
+					$options[] = array($f->get('id'), (Symphony::Configuration()->get('email_address_field_id', 'members') == $f->get('id')), $f->get('label'));
 				}
 			}
 			
@@ -84,6 +84,34 @@
 			
 			$group->appendChild($div);
 			
+			
+			$div = new XMLElement('div', NULL, array('class' => 'group'));
+
+			$label = Widget::Label('Timezone Offset Field');
+						
+			$member_section_id = extension_members::memberSectionID();
+			
+			if(!empty($member_section_id)){
+				
+				$options = array(array('', false, ''));
+				
+				$sectionManager = new SectionManager($this->_Parent);
+			    $section = $sectionManager->fetch($member_section_id);
+			
+				foreach($section->fetchFields() as $f){
+					$options[] = array($f->get('id'), (Symphony::Configuration()->get('timezone_offset_field_id', 'members') == $f->get('id')), $f->get('label'));
+				}
+			}
+			
+			else $options = array(array('', false, 'Must set Member section first'));
+			
+			$label->appendChild(Widget::Select('fields[timezone_offset_field_id]', $options, (empty($member_section_id) ? array('disabled' => 'disabled') : NULL)));
+			$div->appendChild($label);			
+						
+			$group->appendChild($div);			
+			
+			$group->appendChild(new XMLElement('p', 'Used to dynamically set the timezone for displaying dates. Defaults to the Symphony configuration.', array('class' => 'help')));
+						
 			$this->Form->appendChild($group);
 			
 			$fieldset = new XMLElement('fieldset');
@@ -95,14 +123,14 @@
 			$div = new XMLElement('div', NULL, array('class' => 'group'));
 			
 			$label = Widget::Label('Subject');
-			$label->appendChild(Widget::Input('fields[forgotten_pass_email_subject]', General::sanitize(stripslashes(ConfigurationAccessor::get('forgotten_pass_email_subject', 'members')))));
+			$label->appendChild(Widget::Input('fields[forgotten_pass_email_subject]', General::sanitize(stripslashes(Symphony::Configuration()->get('forgotten_pass_email_subject', 'members')))));
 
 			if(isset($this->_errors['forgotten_pass_email_subject'])) $fieldset->appendChild(Widget::wrapFormElementWithError($label, $this->_errors['forgotten_pass_email_subject']));
 			else $fieldset->appendChild($label);			
 			
 			
 			$label = Widget::Label('Body');
-			$label->appendChild(Widget::Textarea('fields[forgotten_pass_email_body]', '25', '50', General::sanitize(stripslashes(ConfigurationAccessor::get('forgotten_pass_email_body', 'members')))));
+			$label->appendChild(Widget::Textarea('fields[forgotten_pass_email_body]', '25', '50', General::sanitize(stripslashes(Symphony::Configuration()->get('forgotten_pass_email_body', 'members')))));
 			$fieldset->appendChild((isset($this->_errors['forgotten_pass_email_body']) ? $this->wrapFormElementWithError($label, $this->_errors['forgotten_pass_email_body']) : $label));					
 
 			$fieldset->appendChild(new XMLElement('p', 'You can add dynamic elements to the email by using <code>{$field-name}</code> syntax, where <code>field-name</code> corresponds to the fields of the member, and <code>{$member-token}</code> which is the unique token allowing them to login E.G. <code>'.URL.'/login/{$member-token}/</code>. The page must have a param called <code>member-token</code>.', array('class' => 'help')));
@@ -130,7 +158,7 @@
 
 				$settings = array_map('addslashes', $_POST['fields']);
 				
-				foreach($settings as $key => $value) ConfigurationAccessor::set($key, $value, 'members');
+				foreach($settings as $key => $value) Symphony::Configuration()->set($key, $value, 'members');
 
 				$this->_Parent->saveConfig();
 

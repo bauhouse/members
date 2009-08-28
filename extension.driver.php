@@ -12,25 +12,25 @@
 		private $_email_body;
 		private $_email_subject;
 		
-		private $_page_permissions;
+		private $_forbidden_pages;
 		private $_event_permissions;
 		
-		public function __construct($id, $name, array $event_permissions=array(), array $page_permissions=array(), $email_subject=NULL, $email_body=NULL){
+		public function __construct($id, $name, array $event_permissions=array(), array $forbidden_pages=array(), $email_subject=NULL, $email_body=NULL){
 			$this->_id = $id;
 			$this->_name = $name;
-			$this->_page_permissions = $page_permissions;
+			$this->_forbidden_pages = $forbidden_pages;
 			$this->_event_permissions = $event_permissions;
 			
 			$this->_email_body = $email_body;
 			$this->_email_subject = $email_subject;
 		}
 		
-		public function __call($name, $var){
+		private function __call($name, $var){
 			return $this->{"_$name"};
 		}
 		
-		public function pagePermissions(){
-			return $this->_page_permissions;
+		public function forbiddenPages(){
+			return $this->_forbidden_pages;
 		}
 		
 		public function eventPermissions(){
@@ -38,7 +38,7 @@
 		}
 		
 		public function canAccessPage($page_id){
-			return @in_array($page_id, $this->_page_permissions);
+			return !@in_array($page_id, $this->_forbidden_pages);
 		}
 		
 		public function canPerformEventAction($event_handle, $action){	
@@ -47,11 +47,14 @@
 		
 	}
 
-	Final Class extension_members extends Extension{
+	Final Class extension_Members extends Extension{
 		
 		private $_cookie;
 		private $_member_id;
 		public $Member;
+		static private $_failed_login_attempt = false;
+		
+		const TOKEN_EXPIRY_TIME = 3600; // 1 hour
 		
 		public static function baseURL(){
 			return URL . '/symphony/extension/members/';
@@ -84,31 +87,43 @@
 		
 		public function about(){
 			return array('name' => 'Members',
-						 'version' => '1.0.2',
-						 'release-date' => '2009-08-25',
+						 'version' => '1.0',
+						 'release-date' => '2008-04-12',
 						 'author' => array('name' => 'Symphony Team',
-										   'website' => 'http://www.symphony-cms.com',
-										   'email' => 'team@symphony-cms.com'),
-						 'description'	=> 'Front end authentication system for a members site'
-
+										   'website' => 'http://www.symphony21.com',
+										   'email' => 'team@symphony21.com')
 				 		);
 		}
 
 		public function install(){
 			
-			if(!class_exists(ConfigurationAccessor)) {
-				trigger_error(__('Could not %1$s, the Members Extension requires the <a href="%2$s">Library Extension</a>.', array(__FUNCTION__, 'http://github.com/bauhouse/library/tree/master')), E_USER_ERROR);	        	
-				return false;
-			}
-
-			ConfigurationAccessor::set('cookie-prefix', 'sym-members', 'members');
-
+			Symphony::Configuration()->set('cookie-prefix', 'sym-members', 'members');
 			$this->_Parent->saveConfig();
 			
 			Symphony::Database()->import("
 			
+				CREATE TABLE `tbl_fields_member` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
 
-			Symphony::Database()->import("
+
+				CREATE TABLE `tbl_fields_memberlink` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
+
+
+				CREATE TABLE `tbl_fields_memberrole` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
 
 				CREATE TABLE `tbl_members_login_tokens` (
 				  `member_id` int(11) unsigned NOT NULL,
@@ -140,36 +155,12 @@
 				) ;
 
 
-				CREATE TABLE `tbl_members_roles_page_permissions` (
+				CREATE TABLE `tbl_members_roles_forbidden_pages` (
 				  `id` int(11) unsigned NOT NULL auto_increment,
 				  `role_id` int(11) unsigned NOT NULL,
 				  `page_id` int(11) unsigned NOT NULL,
-				  `allow` enum('yes','no')  NOT NULL default 'no',
 				  PRIMARY KEY  (`id`),
 				  KEY `role_id` (`role_id`,`page_id`)
-				) ;
-
-				CREATE TABLE `tbl_fields_member` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
-
-				CREATE TABLE `tbl_fields_memberlink` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
-
-				CREATE TABLE `tbl_fields_memberrole` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
 				)
 			
 			");
@@ -179,19 +170,19 @@
 		}	
 
 		public function uninstall(){
-			ConfigurationAccessor::remove('members');			
+			Symphony::Configuration()->remove('members');			
 			$this->_Parent->saveConfig();
-			Symphony::Database()->query("DROP TABLE `tbl_members_login_tokens`, `tbl_members_roles`, `tbl_members_roles_event_permissions`, `tbl_members_roles_page_permissions`;");
+			Symphony::Database()->query("DROP TABLE `tbl_members_login_tokens`, `tbl_members_roles`, `tbl_members_roles_event_permissions`, `tbl_members_roles_forbidden_pages`;");
 		}
 
 		public function fetchRole($role_id, $include_permissions=false){
 			if(!$row = Symphony::Database()->fetchRow(0, "SELECT * FROM `tbl_members_roles` WHERE `id` = $role_id LIMIT 1")) return;
 			
-			$page_permissions = array();
+			$forbidden_pages = array();
 			$event_permissions = array();
 			
 			if($include_permissions){			
-				$page_permissions = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `tbl_members_roles_page_permissions` WHERE `role_id` = '".$row['id']."' ");
+				$forbidden_pages = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `tbl_members_roles_forbidden_pages` WHERE `role_id` = '".$row['id']."' ");
 
 				$tmp = Symphony::Database()->fetch("SELECT * FROM `tbl_members_roles_event_permissions` WHERE `role_id` = '".$row['id']."' AND `allow` = 'yes' ");
 				if(is_array($tmp) && !empty($tmp)){
@@ -204,7 +195,7 @@
 				}
 			}
 			
-			return new Role($row['id'], $row['name'], $event_permissions, $page_permissions, $row['email_subject'], $row['email_body']);
+			return new Role($row['id'], $row['name'], $event_permissions, $forbidden_pages, $row['email_subject'], $row['email_body']);
 		}
 
 		public function fetchRoles($include_permissions=false){
@@ -214,11 +205,11 @@
 			
 			foreach($rows as $r){
 				
-				$page_permissions = array();
+				$forbidden_pages = array();
 				$event_permissions = array();
 				
 				if($include_permissions){	
-					$page_permissions = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `tbl_members_roles_page_permissions` WHERE `role_id` = '".$r['id']."' ");
+					$forbidden_pages = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `tbl_members_roles_forbidden_pages` WHERE `role_id` = '".$r['id']."' ");
 
 					$tmp = Symphony::Database()->fetch("SELECT * FROM `tbl_members_roles_event_permissions` WHERE `role_id` = '".$r['id']."' AND `allow` = 'yes' ");
 					if(is_array($tmp) && !empty($tmp)){
@@ -231,7 +222,7 @@
 					}
 				}
 				
-				$roles[] = new Role($r['id'], $r['name'], $event_permissions, $page_permissions, $r['email_subject'], $r['email_body']);
+				$roles[] = new Role($r['id'], $r['name'], $event_permissions, $forbidden_pages, $r['email_subject'], $r['email_body']);
 				
 			}
 			
@@ -244,15 +235,27 @@
 
 						array(
 							'page' => '/frontend/',
-							'delegate' => 'FrontendProcessEvents',
+							'delegate' => 'FrontendPageResolved', //'FrontendProcessEvents',
 							'callback' => 'checkFrontendPagePermissions'							
 						),
-
+						
+						array(
+							'page' => '/frontend/',
+							'delegate' => 'FrontendProcessEvents',
+							'callback' => 'appendLoginStatusToEventXML'							
+						),
+					
 						array(
 							'page' => '/frontend/',
 							'delegate' => 'EventPostSaveFilter',
 							'callback' => 'processEventData'							
 						),
+						
+						array(
+							'page' => '/frontend/',
+							'delegate' => 'EventPreSaveFilter',
+							'callback' => 'checkEventPermissions'							
+						),							
 																		
 						array(
 							'page' => '/publish/new/',
@@ -260,15 +263,10 @@
 							'callback' => 'emailNewMember'
 						),		
 						
-						array(
-							'page'		=> '/frontend/',
-							'delegate'	=> 'FrontendParamsResolve',
-							'callback'	=> 'addParam'
-						),
 			);
 		}
 		
-		private function __purgeTokens($member_id=NULL){
+		public static function purgeTokens($member_id=NULL){
 			Symphony::Database()->query("DELETE FROM `tbl_members_login_tokens` WHERE `expiry` <= ".time().($member_id ? " OR `member_id` = '$member_id'" : NULL));
 		}
 		
@@ -280,9 +278,9 @@
 			if(is_array($token) && strlen($token['token']) == 8) return $token['token'];
 				
 			## Generate a token
-			$token = substr(md5(time() . rand(0, 5000)), 0, 8);
+			$token = rand(10000000, 99999999); //substr(md5(time() . rand(0, 5000)), 0, 8);
 			
-			Symphony::Database()->insert(array('member_id' => $member_id, 'token' => $token, 'expiry' => (time() + 10800)), 'tbl_members_login_tokens', true);
+			Symphony::Database()->insert(array('member_id' => $member_id, 'token' => $token, 'expiry' => (time() + self::TOKEN_EXPIRY_TIME)), 'tbl_members_login_tokens', true);
 
 			return $token;
 		}
@@ -291,6 +289,10 @@
 			
 			$entry = $this->fetchMemberFromID($member_id);
 			
+			if(!($entry instanceof Entry)){
+				throw new Exception('Invalid member ID specified');
+			}
+			
 			$token = $this->generateToken($member_id);
 			
 			$role_data = $entry->getData($this->roleField());
@@ -298,13 +300,15 @@
 			$email_address_data = $entry->getData(self::memberEmailFieldID());
 			
 			$to_address = $email_address_data['value'];
-			$subject = $this->__replaceFieldsInString(stripslashes(ConfigurationAccessor::get('forgotten_pass_email_subject', 'members')), $entry);
-			$body = $this->__replaceFieldsInString(stripslashes(ConfigurationAccessor::get('forgotten_pass_email_body', 'members')), $entry);
+			$subject = $this->__replaceFieldsInString(stripslashes(Symphony::Configuration()->get('forgotten_pass_email_subject', 'members')), $entry);
+			$body = $this->__replaceFieldsInString(stripslashes(Symphony::Configuration()->get('forgotten_pass_email_body', 'members')), $entry);
 			
-			$body = str_replace('{$member-token}', $token, $body);
-			
+			$body = str_replace(array('{$root}', '{$member-token}'), array(URL, $token), $body);
+
+			$body = str_replace('{$' . $this->usernameAndPasswordFieldHandle() . '::username}', $fields[$this->usernameAndPasswordFieldHandle()]['username'], $body);
+	
 			$sender_email = 'noreply@' . parse_url(URL, PHP_URL_HOST);
-			$sender_name = ConfigurationAccessor::get('sitename', 'general');
+			$sender_name = Symphony::Configuration()->get('sitename', 'general');
 		
 			General::sendEmail($to_address,  $sender_email, $sender_name, $subject, $body);			
 		}
@@ -323,22 +327,18 @@
 			$subject = $this->__replaceFieldsInString($role->email_subject(), $entry);
 			$body = $this->__replaceFieldsInString($role->email_body(), $entry);
 
-			$body = str_replace('{$' . $this->usernameAndPasswordFieldHandle() . '::plaintext-password}', $fields[$this->usernameAndPasswordFieldHandle()]['password'], $body);
+			$token = $this->generateToken($entry->get('id'));
 			
+			$body = str_replace(array('{$root}', '{$activation-token}'), array(URL, $token), $body);
+	
+			$body = str_replace('{$' . $this->usernameAndPasswordFieldHandle() . '::plaintext-password}', $fields[$this->usernameAndPasswordFieldHandle()]['password'], $body);
+			$body = str_replace('{$' . $this->usernameAndPasswordFieldHandle() . '::username}', $fields[$this->usernameAndPasswordFieldHandle()]['username'], $body);			
+
 			$sender_email = 'noreply@' . parse_url(URL, PHP_URL_HOST);
-			$sender_name = ConfigurationAccessor::get('sitename', 'general');
+			$sender_name = Symphony::Configuration()->get('sitename', 'general');
 	
 			General::sendEmail($to_address,  $sender_email, $sender_name, $subject, $body);
 						
-		}
-		
-		public function addParam($context) {
-
-			$this->initialiseCookie();
-
-			if($id = $this->__findMemberIDFromCredentials($this->_cookie->get('username'), $this->_cookie->get('password'))){
-				$context = $context['params']['member-id'] = $id;
-			}
 		}
 		
 		public function emailNewMember($context){
@@ -346,15 +346,64 @@
 		}
 
 		public function processEventData($context){
-			if(isset($context['entry_id'])) return false;
+			if($context['event']->getSource() == self::memberSectionID() && isset($_POST['action']['save-member'])){
+				return $this->__sendNewRegistrationEmail($context['entry'], $context['fields']);	
+			}
+		}
+		
+		public function checkEventPermissions($context){
+			$action = 'add';
+			$entry_id = NULL;
+			
+			if(isset($_POST['id'])){
+				$entry_id = (int)$_POST['id'];
+				$action = 'edit';
+			}
+			
+			$this->initialiseCookie();
+			$this->initialiseMemberObject();
+			$isLoggedIn = $this->isLoggedIn();	
+			
+			if($isLoggedIn && is_object($this->Member)){
+				$role_data = $this->Member->getData($this->roleField());
+			}
+			
+			$role = $this->fetchRole(($isLoggedIn ? $role_data['role_id'] : 1), true);
+			
+			$event_handle = strtolower(preg_replace('/^event/i', NULL, get_class($context['event'])));
+			
+			$is_owner = false;
+			
+			if($action == 'edit'){
+				$section_id = $context['event']->getSource();
+			
+				$member_field = Symphony::Database()->fetchVar(
+					'id', 0, 
+					"SELECT `id` FROM `tbl_fields` WHERE `parent_section` = {$section_id} AND `type` = 'memberlink' LIMIT 1"
+				);
+				
+				$member_id = Symphony::Database()->fetchVar(
+					'member_id', 0,
+					"SELECT `member_id` FROM `tbl_entries_data_{$member_field}` WHERE `entry_id` = {$entry_id} LIMIT 1"
+				);
+			
+				$is_owner = ($isLoggedIn ? ((int)$this->Member->get('id') == $member_id) : false);
 
-			if($context['event']->getSource() == self::memberSectionID()) return $this->__sendNewRegistrationEmail($context['entry'], $context['fields']);	
+			}
+			
+			$success = false;
+			if($role->canPerformEventAction($event_handle, $action) || ($is_owner === true && $role->canPerformEventAction($event_handle, "{$action}_own"))){
+				$success = true;
+			}
+			
+			$context['messages'][] = array('permission', $success, ($success === false ? 'not authorised to perform this action' : NULL));
+			
 		}
 		
 		private function __replaceFieldsInString($string, Entry $entry){
 			
 			$fields = $this->__findFieldsInString($string, true);
-		
+
 			if(is_array($fields) && !empty($fields)){
 				
 				$FieldManager = new FieldManager($this->_Parent);
@@ -396,6 +445,23 @@
 			
 		}
 		
+		public function appendLoginStatusToEventXML($context){
+
+			$this->initialiseCookie();
+			
+			## Cookies only show up on page refresh. This flag helps in making sure the correct XML is being set
+			$loggedin = $this->isLoggedIn();
+			
+			$this->initialiseMemberObject();
+			
+			if($loggedin == true){
+				$this->__updateSystemTimezoneOffset();
+			}
+
+			$context['wrapper']->appendChild($this->buildXML());	
+			
+		}
+		
 		public function checkFrontendPagePermissions($context){
 
 			$this->initialiseCookie();
@@ -410,9 +476,10 @@
 				redirect(URL);
 			}
 			
-			elseif(isset($action['login'])){					
-				$username = $_REQUEST['username'];
-				$password = $_REQUEST['password'];	
+			elseif(isset($action['login'])){	
+								
+				$username = Symphony::Database()->cleanValue($_REQUEST['username']);
+				$password = Symphony::Database()->cleanValue($_REQUEST['password']);	
 				
 				if($this->login($username, $password)){ 
 					
@@ -420,6 +487,8 @@
 					
 					redirect(URL . $_SERVER['REQUEST_URI']);
 				}
+				
+				self::$_failed_login_attempt = true;
 				
 			}
 			
@@ -433,7 +502,7 @@
 
 					$loggedin = $this->login($username_field_data['username'], $username_field_data['password'], true);
 					
-					$this->__purgeTokens($token['member_id']);
+					self::purgeTokens($token['member_id']);
 				}
 				
 				
@@ -451,16 +520,62 @@
 			$role = $this->fetchRole(($loggedin ? $role_data['role_id'] : 1), true);
 		
 			if(!$role->canAccessPage((int)$context['page_data']['id'])):
-			
-				if(($row = Symphony::Database()->fetchRow(0, "SELECT `tbl_pages`.* FROM `tbl_pages`, `tbl_pages_types` WHERE `tbl_pages_types`.page_id = `tbl_pages`.id AND tbl_pages_types.`type` = '403' LIMIT 1")) && $role->canAccessPage($row['id'])){
-					redirect(URL . '/' . ($row['path'] ? $row['path'] . '/' : '') . $row['handle']);
+
+				/*
+					Array
+					(
+					    [id] => 115
+					    [parent] => 91
+					    [title] => New
+					    [handle] => new
+					    [path] => downloads
+					    [params] => type
+					    [data_sources] => menu
+					    [events] => save_download
+					    [sortorder] => 13
+					    [type] => Array
+					        (
+					        )
+
+					    [filelocation] => /Users/pointybeard/Sites/projects/overture/public/workspace/pages/downloads_new.xsl
+					)
+					
+					Array
+					(
+					    [id] => 136
+					    [parent] => 
+					    [title] => Forbidden
+					    [handle] => forbidden
+					    [path] => 
+					    [params] => 
+					    [data_sources] => menu
+					    [events] => 
+					    [sortorder] => 37
+					)
+				*/
+
+				if($row = Symphony::Database()->fetchRow(0, "SELECT `tbl_pages`.* FROM `tbl_pages`, `tbl_pages_types` 
+															  WHERE `tbl_pages_types`.page_id = `tbl_pages`.id AND tbl_pages_types.`type` = '403' 
+															  LIMIT 1")){
+	
+					//redirect(URL . '/' . $row['path'] . '/' . $row['handle']);
+					
+					//$page['filelocation'] = $this->resolvePageFileLocation($page['path'], $page['handle']);
+					//$page['type'] = $this->__fetchPageTypes($page['id']);
+					
+					$row['type'] = Symphony::Database()->fetchCol('type', "SELECT `type` FROM `tbl_pages_types` WHERE `page_id` = '".$row['id']."' ");
+					$row['filelocation'] = (PAGES . '/' . trim(str_replace('/', '_', $row['path'] . '_' . $row['handle']), '_') . '.xsl');
+					
+					$context['page_data'] = $row;
+					return;
+					
 				}
-			
-				$this->_Parent->customError(E_USER_ERROR, 'Error 403: Forbidden', 'Symphony Error: no access to custom 403 page.', false, true, 'error', array('header' => 'HTTP/1.0 403 Forbidden'));
-			
+				
+				$this->_Parent->customError(E_USER_ERROR, 'Forbidden', 'Please <a href="'.URL.'/symphony/login/">login</a> to view this page.', false, true, 'error', array('header' => 'HTTP/1.0 403 Forbidden'));
+				
 			endif;
 
-			$context['wrapper']->appendChild($this->buildXML());
+			//$context['wrapper']->appendChild($this->buildXML());
 						
 		}
 	
@@ -477,19 +592,38 @@
 		}
 		
 		public static function memberSectionID(){
-			return (int)ConfigurationAccessor::get('member_section', 'members');
+			return (int)Symphony::Configuration()->get('member_section', 'members');
 		}
 		
 		public static function memberEmailFieldID(){
-			return (int)ConfigurationAccessor::get('email_address_field_id', 'members');
+			return (int)Symphony::Configuration()->get('email_address_field_id', 'members');
 		}
+		
+		public static function memberTimezoneOffsetFieldID(){
+			return (int)Symphony::Configuration()->get('timezone_offset_field_id', 'members');
+		}		
 					
 		public function memberSectionHandle(){
 			$section_id = self::memberSectionID();
 			
 			return Symphony::Database()->fetchVar('handle', 0, "SELECT `handle` FROM `tbl_sections` WHERE `id` = $section_id LIMIT 1");
 		}	
+		
+		private function __updateSystemTimezoneOffset(){
+
 			
+			$offset = Symphony::Database()->fetchVar('value', 0, "SELECT `value` 
+																	FROM `tbl_entries_data_".self::memberTimezoneOffsetFieldID()."` 
+																	WHERE `entry_id` = '".Symphony::Database()->cleanValue($this->Member->get('id'))."'
+																	LIMIT 1");
+			
+			if(strlen(trim($offset)) == 0) return;
+															
+			//When using 'Etc/GMT...' the +/- signs are reversed. E.G. GMT+10 == Etc/GMT-10
+			DateTimeObj::setDefaultTimezone('Etc/GMT' . ($offset >= 0 ? '-' : '+') . abs($offset)); 
+
+		}
+		
 		public function buildXML(){
 			
 			if(!empty($this->_member_id)){
@@ -516,10 +650,10 @@
 			
 				$permission = new XMLElement('permissions');
 				
-				$page_permissions = $role->pagePermissions();
-				if(is_array($page_permissions) && !empty($page_permissions)){
-					$pages = new XMLElement('pages');
-					foreach($page_permissions as $page_id) 
+				$forbidden_pages = $role->forbiddenPages();
+				if(is_array($forbidden_pages) && !empty($forbidden_pages)){
+					$pages = new XMLElement('forbidden-pages');
+					foreach($forbidden_pages as $page_id) 
 						$pages->appendChild(new XMLElement('page', NULL, array('id' => $page_id)));
 						
 					$permission->appendChild($pages);
@@ -544,25 +678,10 @@
 			else{
 				$result = new XMLElement('member-login-info');
 				$result->setAttribute('logged-in', 'false');
-
-				$role_name = Symphony::Database()->fetchVar('name', 0, "SELECT `name` FROM `sym_members_roles` WHERE `id` = '1' ");
-				$role_xml = new XMLElement('role', $role_name);
-				$role_xml->setAttribute('id', '1');
-
-				$result->appendChild($role_xml);
-
-				$page_permissions = Symphony::Database()->fetchCol('page_id', "SELECT `page_id` FROM `sym_members_roles_page_permissions` WHERE `role_id` = '1' ");
-				$permission = new XMLElement('permissions');
-
-				if(is_array($page_permissions) && !empty($page_permissions)){
-					$pages = new XMLElement('pages');
-					foreach($page_permissions as $page_id) 
-						$pages->appendChild(new XMLElement('page', NULL, array('id' => $page_id)));
-
-					$permission->appendChild($pages);
+				
+				if(self::$_failed_login_attempt === true){
+					$result->setAttribute('failed-login-attempt', 'true');
 				}
-
-				$result->appendChild($permission);
 			}
 			
 			return $result;
@@ -588,13 +707,14 @@
 		}
 		
 		public function initialiseCookie(){
-			if(!$this->_cookie) $this->_cookie =& new Cookie(ConfigurationAccessor::get('cookie-prefix', 'members'), TWO_WEEKS, __SYM_COOKIE_PATH__);
+			if(!$this->_cookie) $this->_cookie =& new Cookie(Symphony::Configuration()->get('cookie-prefix', 'members'), TWO_WEEKS, __SYM_COOKIE_PATH__);
 		}
 		
 		private function __findMemberIDFromCredentials($username, $password){
 			$entry_id = Symphony::Database()->fetchVar('entry_id', 0, "SELECT `entry_id` 
 																		   FROM `tbl_entries_data_".$this->usernameAndPasswordField()."` 
-																		   WHERE `username` = '".$username."' AND `password` = '".$password."' 
+																		   WHERE `username` = '".Symphony::Database()->cleanValue($username)."' 
+																			AND `password` = '".Symphony::Database()->cleanValue($password)."' 
 																		   LIMIT 1");
 			
 			return (is_null($entry_id) ? NULL : $entry_id);
@@ -603,10 +723,16 @@
 		public function findMemberIDFromEmail($email){
 			return Symphony::Database()->fetchCol('entry_id', "SELECT `entry_id` 
 																		   FROM `tbl_entries_data_".self::memberEmailFieldID()."` 
-																		   WHERE `value` = '".$email."' 
-																		   LIMIT 1");	
+																		   WHERE `value` = '".Symphony::Database()->cleanValue($email)."'");	
 		}
 		
+		public function findMemberIDFromUsername($username){
+			return Symphony::Database()->fetchVar('entry_id', 0, "SELECT `entry_id` 
+																FROM `tbl_entries_data_".$this->usernameAndPasswordField()."` 
+															 	WHERE `username` = '".Symphony::Database()->cleanValue($username)."' 
+																LIMIT 1");	
+		}
+				
 		public function isLoggedIn(){
 			
 			if($id = $this->__findMemberIDFromCredentials($this->_cookie->get('username'), $this->_cookie->get('password'))){
@@ -639,9 +765,23 @@
 				
 				return true;
 			}
-			
+
 			return false;
 			
+		}
+		
+		public static function buildRolePermissionTableBody(array $rows){
+			$array = array();
+			foreach($rows as $r){
+				$array[] = self::buildRolePermissionTableRow($r[0], $r[1], $r[2], $r[3]);
+			}
+			return $array;
+		}
+		
+		public static function buildRolePermissionTableRow($label, $event, $handle, $checked=false){
+			$td1 = Widget::TableData($label);
+			$td2 = Widget::TableData(Widget::Input('fields[permissions]['.$event.']['.$handle.']', 'yes', 'checkbox', ($checked === true ? array('checked' => 'checked') : NULL)));
+			return Widget::TableRow(array($td1, $td2));	
 		}
 
 	}

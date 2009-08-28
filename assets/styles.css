@@ -8,6 +8,11 @@ table.role-permissions {
 	padding: 0;
 }
 
+table.narrow {
+	width: 30%;
+}
+
+
 table.role-permissions th:first-child {
 	text-align: left;
 }
