@@ -113,19 +113,19 @@
 			
 			if(isset($this->_context[1])){
 				switch($this->_context[1]){
-					
+
 					case 'saved':
-						$this->pageAlert('{1} updated successfully. <a href="{2}">Create another?</a>', AdministrationPage::PAGE_ALERT_NOTICE, array('Role', extension_members::baseURL()));
+						$this->pageAlert(__('%1$s updated successfully. <a href="%2$s">Create another?</a>', array('Role', extension_members::baseURL() . 'new/')), Alert::SUCCESS);
 						break;
-						
+
 					case 'created':
-						$this->pageAlert('{1} created successfully. <a href="{2}">Create another?</a>', AdministrationPage::PAGE_ALERT_NOTICE, array('Role', extension_members::baseURL()));
+						$this->pageAlert(__('%1$s created successfully. <a href="%2$s">Create another?</a>', array('Role', extension_members::baseURL() . 'new/')), Alert::SUCCESS);
 						break;
 
 					case 'moved':
-						$this->pageAlert('All members have been successfully moved to new role.');
+						$this->pageAlert('All members have been successfully moved to new role.', Alert::SUCCESS);
 						break;
-					
+
 				}
 			}
 			
