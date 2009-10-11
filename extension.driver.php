@@ -268,10 +268,15 @@
 							'delegate' => 'EntryPostCreate',
 							'callback' => 'emailNewMember'
 						),		
-						
+
+						array(
+							'page'		=> '/frontend/',
+							'delegate'	=> 'FrontendParamsResolve',
+							'callback'	=> 'addParam'
+						),
 			);
 		}
-		
+
 		public static function purgeTokens($member_id=NULL){
 			Symphony::Database()->query("DELETE FROM `tbl_members_login_tokens` WHERE `expiry` <= ".time().($member_id ? " OR `member_id` = '$member_id'" : NULL));
 		}
@@ -346,7 +351,16 @@
 			General::sendEmail($to_address,  $sender_email, $sender_name, $subject, $body);
 						
 		}
-		
+
+		public function addParam($context) {
+
+			$this->initialiseCookie();
+
+			if($id = $this->__findMemberIDFromCredentials($this->_cookie->get('username'), $this->_cookie->get('password'))){
+				$context = $context['params']['member-id'] = $id;
+			}
+		}
+
 		public function emailNewMember($context){
 			if($context['section'] == $this->memberSectionHandle()) return $this->__sendNewRegistrationEmail($context['entry'], $context['fields']);
 		}
