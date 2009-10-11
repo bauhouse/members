@@ -102,37 +102,13 @@
 
 			Symphony::Database()->import("
 
-				CREATE TABLE `tbl_fields_member` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
-
-				CREATE TABLE `tbl_fields_memberlink` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
-
-				CREATE TABLE `tbl_fields_memberrole` (
-				  `id` int(11) unsigned NOT NULL auto_increment,
-				  `field_id` int(11) unsigned NOT NULL,
-				  PRIMARY KEY  (`id`),
-				  UNIQUE KEY `field_id` (`field_id`)
-				);
-
 				CREATE TABLE `tbl_members_login_tokens` (
 				  `member_id` int(11) unsigned NOT NULL,
 				  `token` varchar(8)  NOT NULL,
 				  `expiry` int(11) NOT NULL,
 				  PRIMARY KEY  (`member_id`),
 				  KEY `token` (`token`)
-				) ;
-
+				);
 
 				CREATE TABLE `tbl_members_roles` (
 				  `id` int(11) unsigned NOT NULL auto_increment,
@@ -141,8 +117,7 @@
 				  `email_body` longtext ,
 				  PRIMARY KEY  (`id`),
 				  UNIQUE KEY `name` (`name`)
-				) ;
-
+				);
 
 				CREATE TABLE `tbl_members_roles_event_permissions` (
 				  `id` int(11) unsigned NOT NULL auto_increment,
@@ -152,8 +127,7 @@
 				  `allow` enum('yes','no')  NOT NULL default 'no',
 				  PRIMARY KEY  (`id`),
 				  KEY `role_id` (`role_id`,`event`,`action`)
-				) ;
-
+				);
 
 				CREATE TABLE `tbl_members_roles_forbidden_pages` (
 				  `id` int(11) unsigned NOT NULL auto_increment,
@@ -161,6 +135,27 @@
 				  `page_id` int(11) unsigned NOT NULL,
 				  PRIMARY KEY  (`id`),
 				  KEY `role_id` (`role_id`,`page_id`)
+				);
+
+				CREATE TABLE `tbl_fields_member` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
+
+				CREATE TABLE `tbl_fields_memberlink` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
+				);
+
+				CREATE TABLE `tbl_fields_memberrole` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL,
+				  PRIMARY KEY  (`id`),
+				  UNIQUE KEY `field_id` (`field_id`)
 				)
 
 			");
