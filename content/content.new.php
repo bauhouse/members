@@ -105,7 +105,14 @@
 
 			if(is_array($events) && !empty($events)){
 				foreach($events as $handle => $e){
-					if(!$e['can_parse']) unset($events[$handle]);
+					
+					$show_in_role_permissions = 
+						(method_exists("event{$handle}", 'showInRolePermissions') && call_user_func(array("event{$handle}", 'showInRolePermissions')) === true 
+							? true 
+							: false
+						);
+					
+					if(!$e['can_parse'] && !$show_in_role_permissions) unset($events[$handle]);
 				}
 			}		
 			

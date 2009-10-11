@@ -241,6 +241,12 @@
 						
 						array(
 							'page' => '/frontend/',
+							'delegate' => 'FrontendParamsResolve',
+							'callback' => 'cbAddMemberDetailsToPageParams'							
+						),						
+						
+						array(
+							'page' => '/frontend/',
 							'delegate' => 'FrontendProcessEvents',
 							'callback' => 'appendLoginStatusToEventXML'							
 						),
@@ -459,6 +465,17 @@
 			}
 
 			$context['wrapper']->appendChild($this->buildXML());	
+			
+		}
+		
+		public function cbAddMemberDetailsToPageParams(array $context=NULL){
+			$this->initialiseCookie();
+			
+			if(!$this->isLoggedIn()) return;
+			
+			$this->initialiseMemberObject();
+			
+			$context['params']['cookie-member-id'] = $this->Member->get('id');
 			
 		}
 		
