@@ -484,7 +484,8 @@
 
 			if(trim($action) == 'logout'){
 				$this->logout();
-				redirect(URL);
+				$page = explode('?', $_SERVER['REQUEST_URI']);
+				redirect(URL . $page[0]);
 			}
 
 			elseif(isset($action['login'])){
