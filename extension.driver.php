@@ -41,6 +41,36 @@
 		
 		public function send($members, array $vars=array()){
 
+			/* Use the mail() function
+			   http://symphony-cms.com/discuss/thread/38892/3/
+			*/
+			if(!is_array($members)) $members = array($members);
+
+			foreach($members as $member_id){
+
+				$member = self::$_Members->fetchMemberFromID($member_id);
+
+				$emailto = $member->getData(extension_Members::memberEmailFieldID(), true)->value;
+				$emailfrom = sprintf(
+					'%s <%s>',
+					Symphony::Configuration()->get('sitename', 'general'),
+					'noreply@' . parse_url(URL, PHP_URL_HOST)
+				);
+
+				$emailsubject = $this->__replaceFieldsInString(
+					$this->__replaceVarsInString($this->subject, $vars), $member
+				);
+
+				$emailmessage = $this->__replaceFieldsInString(
+					$this->__replaceVarsInString($this->body, $vars), $member
+				);
+
+				mail($emailto, $emailsubject, $emailmessage, 'From: '.$emailfrom);
+
+				//unset($email);
+			}
+
+			/* Uncomment to use SMTP Email Library extension
 			if(!is_array($members)) $members = array($members);
 
 			foreach($members as $member_id){
@@ -72,6 +102,7 @@
 				
 				unset($email);
 			}
+			*/
 			
 		}
 		
