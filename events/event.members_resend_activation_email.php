@@ -11,6 +11,10 @@
 
 		const ROOTELEMENT = 'members-resend-activation-email';
 
+		public static function showInRolePermissions(){
+			return true;
+		}
+
 		public static function about(){
 			return array(
 				'name' => 'Members: Resend Activation Email',

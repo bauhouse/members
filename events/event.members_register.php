@@ -16,7 +16,7 @@
 		public static function showInRolePermissions(){
 			return true;
 		}
-		
+
 		public static function about(){
 			return array(
 					 'name' => 'Members: Register',
