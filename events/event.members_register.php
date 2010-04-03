@@ -13,6 +13,10 @@
 			$this->_driver = $this->_Parent->ExtensionManager->create('members');
 		}
 		
+		public $eParamFILTERS = array(
+
+		);
+
 		public static function showInRolePermissions(){
 			return true;
 		}
