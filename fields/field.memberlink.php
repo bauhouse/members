@@ -1,5 +1,7 @@
 <?php
 	
+	require_once(CORE . '/class.administration.php');
+
 	Class fieldMemberLink extends Field{
 		
 		static private $_driver;
