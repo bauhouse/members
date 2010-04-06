@@ -1,7 +1,5 @@
 <?php
 	
-	require_once(CORE . '/class.administration.php');
-
 	Class fieldMemberLink extends Field{
 		
 		static private $_driver;
@@ -226,16 +224,22 @@
 		}
 
 		public function fetchMemberFromID($member_id){
-			$driver = Administration::instance()->ExtensionManager->create('members');
-			return $driver->initialiseMemberObject($member_id);					
+			if (class_exists('Administration')) {
+				return self::$_driver->initialiseMemberObject($member_id);
+			}
+
+			return self::$_driver->initialiseMemberObject();
 		}
 
 		public function fetchMemberFromUsername($username){
-			$driver = Administration::instance()->ExtensionManager->create('members');
-			$member_id = $this->Database->fetchVar('entry_id', 0, "SELECT `entry_id` FROM `tbl_entries_data_".$driver->usernameAndPasswordField()."` WHERE `username` = '".$username."' LIMIT 1");
+			if (class_exists('Administration')) {
+				$member_id = $this->Database->fetchVar('entry_id', 0, "SELECT `entry_id` FROM `tbl_entries_data_". self::$_driver->usernameAndPasswordField()."` WHERE `username` = '".$username."' LIMIT 1");
+
+				return ($member_id ? $this->fetchMemberFromID($member_id) : NULL);
+			}
 			
-			return ($member_id ? $this->fetchMemberFromID($member_id) : NULL);
-		}		
+			return self::$_driver->initialiseMemberObject();
+		}
 
 		public function processRawFieldData($data, &$status, $simulate=false, $entry_id=NULL){
 			
