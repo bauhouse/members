@@ -9,7 +9,7 @@
 	include_once(EXTENSIONS . '/members/lib/class.role.php');
 	include_once(EXTENSIONS . '/members/lib/class.members.php');
 
-	require_once(EXTENSIONS . '/battlefront_api/lib/facebookphp-sdk/src/facebook.php');
+	// require_once(EXTENSIONS . '/battlefront_api/lib/facebookphp-sdk/src/facebook.php');
 
 	Class extension_Members extends Extension {
 
@@ -26,7 +26,7 @@
 			parent::__construct($args);
 
 			$symphony = class_exists('Frontend') ? Frontend::instance() : Administration::instance();
-			$battlefront = $symphony->ExtensionManager->create("battlefront_api");
+/*			$battlefront = $symphony->ExtensionManager->create("battlefront_api");
 
 			$connection = new Facebook(array(
 				'appId'  => $this>fbID(),
@@ -35,7 +35,7 @@
 			));
 
 			$session = $connection->getSession();
-
+*/
 			/*	Not very elegant, but this will get any existing cookies. It's useful for this to be passed
 			**	around, particularly to the FacebookMember or any other OAuthMember so that it can tie the
 			**	3rd Party Integration to an existing Symphony account */
@@ -43,12 +43,12 @@
 				Symphony::Configuration()->get('cookie-prefix', 'members'),	TWO_WEEKS, __SYM_COOKIE_PATH__, true
 			);
 
-			if(!is_null($session) || isset($_GET['session'])) {
+/*			if(!is_null($session) || isset($_GET['session'])) {
 				$this->Member = new FacebookMember($this, $connection, $session, $current_cookie);
 			}
 			else {
-				$this->Member = new SymphonyMember($this);
-			}
+*/				$this->Member = new SymphonyMember($this);
+//			}
 
 			unset($current_cookie);
 
@@ -144,7 +144,7 @@
 			);
 		}
 
-		public function fbID(){
+/*		public function fbID(){
 			if (file_exists(MANIFEST . '/facebook-settings')) {
 				$value = unserialize(@file_get_contents(MANIFEST . '/facebook-settings'));
 				return $value['app-id'];
@@ -171,7 +171,7 @@
 		public function __SavePreferences($context){
 			$this->saveFbSettings(serialize($_POST['facebook']));
 		}
-
+*/
 	/*-------------------------------------------------------------------------
 		Versioning:
 	-------------------------------------------------------------------------*/
