@@ -7,7 +7,6 @@
 	Class eventMembers_Activate_Account extends Event{
 
 		private static $_fields;
-		private static $_sections;
 
 		const ROOTELEMENT = 'members-activate-account';
 
@@ -33,7 +32,7 @@
 				<h3>Example Front-end Form Markup</h3>
 				<p>This is an example of the form markup you can use on your front end. A text field accepts the member&#39;s activation code, and a hidden field redirects the member when activation is successful.</p>
 				<pre class="XML"><code>&lt;form action="" method="post"&gt;
-	&lt;label&gt;Code: &lt;input name="fields[code]" type="text" value="{$code}"/&gt;&lt;/label&gt;			
+	&lt;label&gt;Code: &lt;input name="fields[code]" type="text" value="{$code}"/&gt;&lt;/label&gt;
 	&lt;input type="submit" name="action['.self::ROOTELEMENT.']" value="Activate Account"/&gt;
 	&lt;input type="hidden" name="redirect" value="{$root}/activate/success/"/&gt;
 &lt;/form&gt;</code></pre>
@@ -45,45 +44,29 @@
 			';
 		}
 
-		public static function findSectionID($handle){
-			return self::$_sections[$handle];
-		}
-
-		public static function findFieldID($handle, $section){
-			return self::$_fields[$section][$handle];
+		public static function findFieldID($handle){
+			return self::$_fields[$handle];
 		}
 
 		private static function __init(){
 			if(!is_array(self::$_fields)){
 				self::$_fields = array();
 
-				$rows = ASDCLoader::instance()->query("SELECT s.handle AS `section`, f.`element_name` AS `handle`, f.`id`
-					FROM `tbl_fields` AS `f`
-					LEFT JOIN `tbl_sections` AS `s` ON f.parent_section = s.id
-					ORDER BY `id` ASC");
+				$rows = ASDCLoader::instance()->query(sprintf("
+						SELECT f.`element_name` AS `handle`, f.`id`
+						FROM `sym_fields` AS `f`
+						WHERE f.parent_section = %d
+						ORDER BY `id` ASC
+					", extension_Members::getConfigVar('member_section'))
+				);
 
 				if($rows->length() > 0){
 					foreach($rows as $r){
-						self::$_fields[$r->section][$r->handle] = $r->id;
-					}
-				}
-			}
-
-			if(!is_array(self::$_sections)){
-				self::$_sections = array();
-
-				$rows = ASDCLoader::instance()->query("SELECT s.handle, s.id
-					FROM `tbl_sections` AS `s`
-					ORDER BY s.id ASC");
-
-				if($rows->length() > 0){
-					foreach($rows as $r){
-						self::$_sections[$r->handle] = $r->id;
+						self::$_fields[$r->handle] = $r->id;
 					}
 				}
 			}
 		}
-
 
 		protected function __trigger(){
 
@@ -95,15 +78,21 @@
 			$success = false;
 
 			$Members = Frontend::instance()->ExtensionManager->create('members');
-			$Members->initialiseCookie();
 
-			if($Members->isLoggedIn() !== true){
+			if(!get_class($Members) == 'SymphonyMember') {
+				$result->appendChild(new XMLElement('notice', 'Unsupported Member Class ' . get_class($Members)));
+				return $result;
+			}
+
+			$Members->Member->initialiseCookie();
+
+			if($Members->Member->isLoggedIn() !== true){
 				$result->appendChild(new XMLElement('error', 'Must be logged in.'));
 				$result->setAttribute('status', 'error');
 				return $result;
 			}
 
-			$Members->initialiseMemberObject();
+			$Members->Member->initialiseMemberObject();
 
 			// Make sure we dont accidently use an expired code
 			extension_Members::purgeCodes();
@@ -133,17 +122,15 @@
 
 				extension_Members::purgeCodes((int)$Members->Member->get('id'));
 
-				$em = new EntryManager($this->_Parent);
-				$entry = end($em->fetch((int)$Members->Member->get('id')));
-
-				$email = $entry->getData(self::findFieldID('email-address', 'members'));
-				$name = $entry->getData(self::findFieldID('name', 'members'));
+				$entry = $Members->Member->Member;
+				$email = $entry->getData(extension_Members::getConfigVar('email_address_field_id', 'members'));
+				$name = $entry->getData(self::findFieldID('name'));
 
 				$Members->emailNewMember(
 					array(
 						'entry' => $entry,
 						'fields' => array(
-							'username-and-password' => $entry->getData(self::findFieldID('username-and-password', 'members')),
+							'username-and-password' => $Members->Member->getData(self::findFieldID('username-and-password')),
 							'name' => $name['value'],
 							'email-address' => $email['value']
 						)
@@ -153,14 +140,12 @@
 				$success = true;
 			}
 
-			if($success == true && isset($_REQUEST['redirect'])){
-				redirect($_REQUEST['redirect']);
-			}
+			if($success == true && isset($_REQUEST['redirect'])) redirect($_REQUEST['redirect']);
 
 			$result->setAttribute('result', ($success === true ? 'success' : 'error'));
-			
-			
+
 			return $result;
 		}
+
 	}
 
