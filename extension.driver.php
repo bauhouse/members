@@ -348,26 +348,31 @@
 		}
 
 		public function fetchNavigation(){
+
 			return array(
 				array(
 					'location' => 330,
 					'name' => __('Members'),
 					'children' => array(
-						
+
 						array(
 							'name' => __('Roles'),
-							'link' => '/roles/'
+							'link' => '/roles/',
+							'limit' => 'developer'
 						),
-						
+
 						array(
 							'name' => __('Email Templates'),
-							'link' => '/email_templates/'
-						),	
-											
+							'link' => '/email_templates/',
+							'limit' => 'developer'
+						),
+
 						array(
 							'name' => __('Setup'),
-							'link' => '/setup/'
-						),						
+							'link' => '/setup/',
+							'limit' => 'developer'
+						),
+
 					)
 				)
 				
